@@ -1,4 +1,4 @@
-import QtQuick 2.12
+﻿import QtQuick 2.12
 import QtQuick.Window 2.12
 
 
@@ -11,7 +11,12 @@ Window {
 
     CustomTextEdit{
         id:codeedit
-
     }
+
+//    TextEdit{
+//        anchors.fill: parent
+//        selectByMouse: true
+//        text: qsTr("werw qwerqty")
+//    }
 
 }

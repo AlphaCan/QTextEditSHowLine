@@ -1,6 +1,8 @@
-import QtQuick 2.0
+﻿import QtQuick 2.0
 import QtQuick.Controls 2.5
 import QtQuick.Layouts 1.3
+import QtQuick.Controls 1.4
+
 
 Item {
 
@@ -16,27 +18,71 @@ Item {
 
     TextEdit {
         id: textEdit
+        selectByMouse: true
         height: contentHeight
         width: frame.width - vbar.width
         y: -vbar.position * textEdit.height
         wrapMode: TextEdit.Wrap
+        activeFocusOnPress: true
 
-        selectByMouse: true
+
+
         MouseArea{
             anchors.fill: parent
-            onWheel: {
-                if (wheel.angleDelta.y > 0) {
-                    vbar.decrease();
-                }
-                else {
-                    vbar.increase();
-                }
-            }
+            acceptedButtons: Qt.LeftButton | Qt.RightButton
             onClicked: {
                 textEdit.forceActiveFocus();
+                if(mouse.button === Qt.RightButton)
+                    contentMenu.popup()
+            }
+        }
+
+    }
+
+
+    Menu{
+        id: contentMenu
+        MenuItem{
+            text: qsTr("Cut")
+            shortcut:"Ctrl+X"
+            onTriggered: {
+                textEdit.cut()
+            }
+        }
+
+        MenuItem{
+            text: qsTr("Copy")
+            shortcut: "Ctrl+C"
+            onTriggered: {
+                textEdit.copy()
+            }
+        }
+
+        MenuItem{
+            text: qsTr("Paste")
+            shortcut: "Ctrl+V"
+            onTriggered: {
+                textEdit.paste()
+            }
+        }
+
+        MenuItem{
+            text: qsTr("Undo")
+            shortcut: "Ctrl+Z"
+            onTriggered: {
+                textEdit.undo()
+            }
+        }
+
+        MenuItem{
+            text: qsTr("Redo")
+            shortcut: "Ctrl+Y"
+            onTriggered: {
+                textEdit.redo()
             }
         }
     }
+
 
     ScrollBar {
         id: vbar
@@ -48,6 +94,7 @@ Item {
         anchors.top: parent.top
         anchors.right: parent.right
         anchors.bottom: parent.bottom
+
     }
 
 }
