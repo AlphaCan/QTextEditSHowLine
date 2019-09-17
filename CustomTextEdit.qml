@@ -6,47 +6,155 @@ import QtQuick.Controls 1.4
 
 Item {
 
-    id: frame
-    clip: true
-    width: parent.width
-    height: parent.height
-    anchors.centerIn: parent
-    anchors.top: parent.bottom
-    anchors.left: parent.left
-    Keys.onUpPressed: vbar.decrease()
-    Keys.onDownPressed: vbar.increase()
+    property alias textDocument: edit.textDocument//用于语法高亮
+    property int lincount: edit.lineCount
     property color textcolor: "black"
     property color selectTextcolor: "white"
     property color selectioncolor: "royalblue"
-    property real fontsize: 12
+    property real fontsize: 14
 
-    TextEdit {
-        id: textEdit
-        selectByMouse: true
-        height: contentHeight
-        width: frame.width - vbar.width
-        y: -vbar.position * textEdit.height
-        wrapMode: TextEdit.Wrap
-        activeFocusOnPress: true
-        selectedTextColor: selectTextcolor
-        selectionColor: selectioncolor
-        color: textcolor
-        font.pointSize: fontsize
+    Flickable{
+        id: flick
+        anchors.fill: parent
+        contentWidth: edit.paintedWidth
+        contentHeight: edit.paintedHeight + 5
+        clip: true
+        boundsBehavior:Flickable.StopAtBounds
+        function ensureVisible(r) {
+           if (contentX >= r.x)
+               contentX = r.x;
+           else if (contentX+width <= r.x+r.width)
+               contentX = r.x+r.width-width;
+           if (contentY >= r.y)
+               contentY = r.y;
+           else if (contentY+height <= r.y+r.height)
+               contentY = r.y+r.height-height + 10;
+        }
 
 
 
-        MouseArea{
-            anchors.fill: parent
-            acceptedButtons: Qt.RightButton
-            onClicked: {
-                textEdit.forceActiveFocus();
-                if(mouse.button === Qt.RightButton)
-                    contentMenu.popup()
+        Column{
+            id:lineNumberLabel
+            anchors.left:  parent.left
+            Repeater {
+               model: edit.lineCount;
+               Rectangle {
+                   width: lineNumberWidth(edit.lineCount)
+                   height: panding.contentHeight
+                   color: "#333"
+                   Text {
+                       id:showLineNumber
+                       anchors{
+                           bottom:parent.bottom
+                           bottomMargin: 0
+                           horizontalCenter: parent.horizontalCenter
+                       }
+                       text:index + 1
+                       color: "gray"
+                       font.pointSize: fontsize
+                   }
+               }
+            }
+        }
+        TextEdit{
+            id: panding
+            font.pointSize: fontsize
+            visible: false
+            text: " "
+        }
+
+
+        TextEdit {
+            property bool ctrlPressed: false
+            id: edit
+            anchors.left: lineNumberLabel.right
+            anchors.leftMargin: 4
+            width: flick.width - 10
+            height: edit.contentHeight > flick.height ? edit.contentHeight : flick.height
+            selectByMouse: true
+            tabStopDistance: 35
+            wrapMode: TextEdit.Wrap
+            activeFocusOnPress: true
+            cursorVisible: true
+            selectedTextColor: selectTextcolor
+            selectionColor: selectioncolor
+            color: textcolor
+            font.pointSize: fontsize
+            cursorDelegate: cursorDelegate
+            onCursorRectangleChanged: flick.ensureVisible(cursorRectangle)
+
+            MouseArea{
+                anchors.fill: parent
+                acceptedButtons: Qt.RightButton
+                onWheel: {
+                    var datl = wheel.angleDelta.y / 120
+                    if (datl>0 && edit.ctrlPressed) {
+                        fontsize += 1
+                    } else if (datl<0 && edit.ctrlPressed) {
+                        fontsize -= 1
+                    }
+                    wheel.accepted = false
+                }
+                onClicked: {
+                    edit.forceActiveFocus();
+                    if(mouse.button === Qt.RightButton)
+                        contentMenu.popup()
+                }
+            }
+            Keys.onPressed: {
+                if(event.modifiers === Qt.ControlModifier) {
+                    ctrlPressed = true
+                }
+                event.accepted = false
+            }
+            Keys.onReleased: {
+                if(!(event.modifiers&Qt.ControlModifier)) {
+                    ctrlPressed = false
+                }
+                event.accepted = false
             }
         }
 
+        ScrollIndicator.horizontal: ScrollIndicator { width: 15}
+        ScrollIndicator.vertical: ScrollIndicator { width: 15 }
     }
 
+    Component {
+        id: cursorDelegate
+        Rectangle {
+            id: cursor
+            color: "Blue"
+            width: 2;
+            height: 5
+            SequentialAnimation {
+                running: true;
+                loops: ColorAnimation.Infinite
+                NumberAnimation {
+                    easing {
+                        type: Easing.InQuint
+                    }
+                    property: "opacity"
+                    target: cursor; from: 1.0; to: 0.0; duration: 800;
+                }
+                NumberAnimation {
+                    easing {
+                        type: Easing.InQuint
+                    }
+                    property: "opacity"
+                    target: cursor;
+                    from: 0.0;
+                    to: 1.0;
+                    duration: 800;
+                }
+            }
+            Behavior on x {
+                SpringAnimation { spring: 3; damping: 0.2  }
+            }
+            Behavior on y {
+                SpringAnimation { spring: 3; damping: 0.2 }
+            }
+        }
+    }
 
     Menu{
         id: contentMenu
@@ -54,7 +162,7 @@ Item {
             text: qsTr("Cut")
             shortcut:"Ctrl+X"
             onTriggered: {
-                textEdit.cut()
+                edit.cut()
             }
         }
 
@@ -62,7 +170,7 @@ Item {
             text: qsTr("Copy")
             shortcut: "Ctrl+C"
             onTriggered: {
-                textEdit.copy()
+                edit.copy()
             }
         }
 
@@ -70,7 +178,7 @@ Item {
             text: qsTr("Paste")
             shortcut: "Ctrl+V"
             onTriggered: {
-                textEdit.paste()
+                edit.paste()
             }
         }
 
@@ -78,7 +186,7 @@ Item {
             text: qsTr("Undo")
             shortcut: "Ctrl+Z"
             onTriggered: {
-                textEdit.undo()
+                edit.undo()
             }
         }
 
@@ -86,25 +194,20 @@ Item {
             text: qsTr("Redo")
             shortcut: "Ctrl+Y"
             onTriggered: {
-                textEdit.redo()
+                edit.redo()
             }
         }
     }
 
-
-    ScrollBar {
-        id: vbar
-        hoverEnabled: true
-        active: hovered || pressed
-        orientation: Qt.Vertical
-        size: frame.height / textEdit.height
-        width: 12
-        anchors.top: parent.top
-        anchors.right: parent.right
-        anchors.bottom: parent.bottom
-
+    function lineNumberWidth(lineCount) {
+        var width = 1;
+        var space = 0;
+        while(lineCount >= 10) {
+           lineCount /= 10;
+           ++width;
+        }
+        return space = width * fontsize
     }
-
 }
 
 

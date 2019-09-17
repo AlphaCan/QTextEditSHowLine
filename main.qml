@@ -11,6 +11,7 @@ Window {
 
     CustomTextEdit{
         id:codeedit
+        anchors.fill: parent
     }
 
 //    TextEdit{
