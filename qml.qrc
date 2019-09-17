@@ -2,5 +2,6 @@
     <qresource prefix="/">
         <file>main.qml</file>
         <file>CustomTextEdit.qml</file>
+        <file>CustomTextLine.qml</file>
     </qresource>
 </RCC>

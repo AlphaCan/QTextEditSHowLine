@@ -1,4 +1,4 @@
-﻿import QtQuick 2.0
+﻿import QtQuick 2.12
 import QtQuick.Controls 2.5
 import QtQuick.Layouts 1.3
 import QtQuick.Controls 1.4
@@ -15,6 +15,10 @@ Item {
     anchors.left: parent.left
     Keys.onUpPressed: vbar.decrease()
     Keys.onDownPressed: vbar.increase()
+    property color textcolor: "black"
+    property color selectTextcolor: "white"
+    property color selectioncolor: "royalblue"
+    property real fontsize: 12
 
     TextEdit {
         id: textEdit
@@ -24,12 +28,16 @@ Item {
         y: -vbar.position * textEdit.height
         wrapMode: TextEdit.Wrap
         activeFocusOnPress: true
+        selectedTextColor: selectTextcolor
+        selectionColor: selectioncolor
+        color: textcolor
+        font.pointSize: fontsize
 
 
 
         MouseArea{
             anchors.fill: parent
-            acceptedButtons: Qt.LeftButton | Qt.RightButton
+            acceptedButtons: Qt.RightButton
             onClicked: {
                 textEdit.forceActiveFocus();
                 if(mouse.button === Qt.RightButton)
